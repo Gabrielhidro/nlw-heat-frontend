@@ -21,6 +21,7 @@ type User = {
 type AuthContextData = {
   user: User | null;
   signInUrl: string;
+  signOut: () => void;
 }
 
 type AuthProvider = {
@@ -47,14 +48,20 @@ export function AuthProvider(props: AuthProvider){
     setUser(user);
   }
 
+  function signOut(){
+    setUser(null)
+    localStorage.removeItem('@dowhile:token')
+  }
+
   useEffect(() => {
     const token = localStorage.getItem('@dowhile:token')
 
     if(token) {
       api.defaults.headers.common.authorization = `Bearer ${token}`
 
-      api.get('profile')
-        .then(response => {console.log(response.data);
+      api.get<User>('profile')
+        .then(response => {
+          setUser(response.data);
         })
     }
   },[])
@@ -76,6 +83,7 @@ export function AuthProvider(props: AuthProvider){
     <AuthContext.Provider value={{
       signInUrl,
       user,
+      signOut,
       }}>
       {props.children}
     </AuthContext.Provider>
